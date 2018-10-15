@@ -1,0 +1,258 @@
+1.如果Activity被系统回收了，如何保存当前状态
+  重写onSaveInstanceState()方法，在此方法中保存需要保存的数据,该方法将会在activity被回收之前调用.通过重写onRestoreInstanceState()可以从中提取保存好的数据
+2.Activity四种启动模式
+  standard 默认模式
+  当通过这种模式来启动Activity时,　Android总会为目标 Activity创建一个新的实例,并将该Activity添加到当前Task栈中。这种方式不会启动新的Task,只是将新的 Activity添加到原有的Task中。
+
+  singleTop
+  该模式和standard模式基本一致,但有一点不同:当将要被启动的Activity已经位于Task栈顶时,系统不会重新创建目标Activity实例,而是直接复用Task栈顶的Activity。
+
+  singleTask
+  Activity在同一个Task内只有一个实例。如果将要启动的Activity不存在,那么系统将会创建该实例,并将其加入Task栈顶；如果将要启动的Activity已存在,且存在栈顶,直接复用Task栈顶的Activity。如果Activity存在但是没有位于栈顶,那么此时系统会把位于该Activity上面的所有其他Activity全部移出Task,从而使得该目标Activity位于栈顶。
+
+  singleInstance
+  无论从哪个Task中启动目标Activity,只会创建一个目标Activity实例且会用一个全新的Task栈来装载该Activity实例（全局单例）.如果将要启动的Activity不存在,那么系统将会先创建一个全新的Task,再创建目标Activity实例并将该Activity实例放入此全新的Task中。如果将要启动的Activity已存在,那么无论它位于哪个应用程序,哪个Task中;系统都会把该Activity所在的Task转到前台,从而使该Activity显示出来。
+
+3.什么是服务
+  Service是一个应用程序组件，它能够在后台执行一些耗时较长的操作，并且不提供用户界面。服务能被其它应用程序的组件启动，即使用户切换到另外的应用时还能保持后台运行。此外，应用程序组件还能与服务绑定，并与服务进行交互，甚至能进行进程间通信（IPC）。 比如，服务可以处理网络传输、音乐播放、执行文件I/O、或者与content provider进行交互，所有这些都是后台进行的
+4.Service与Thread的区别
+  服务仅仅是一个组件，即使用户不再与你的应用程序发生交互，它仍然能在后台运行。因此，应该只在需要时才创建一个服务。
+
+　如果你需要在主线程之外执行一些工作，但仅当用户与你的应用程序交互时才会用到，那你应该创建一个新的   线程而不是创建服务。 比如，如果你需要播放一些音乐，但只是当你的activity在运行时才需要播放，你可以   在onCreate()中创建一个线程，在onStart()中开始运行，然后在onStop()中终止运行。还可以考虑使用        AsyncTask或HandlerThread来取代传统的Thread类。
+
+　由于无法在不同的 Activity 中对同一 Thread 进行控制，这个时候就要考虑用服务实现。如果你使用了服务，它默认就运行于应用程序的主线程中。因此，如果服务执行密集计算或者阻塞操作，你仍然应该在服务中创建   一个新的线程来完成（避免ANR）
+5.服务的分类
+  按运行分类
+  前台服务
+  前台服务是指那些经常会被用户关注的服务，因此内存过低时它不会成为被杀的对象。 前台服务必须提供一个状态栏通知，并会置于“正在进行的”（“Ongoing”）组之下。这意味着只有在服务被终止或从前台移除之后，此通知才能被解除。 　　例如，用服务来播放音乐的播放器就应该运行在前台，因为用户会清楚地知晓它的运行情况。 状态栏通知可能会标明当前播放的歌曲，并允许用户启动一个activity来与播放器进行交互。
+
+　要把你的服务请求为前台运行，可以调用startForeground()方法。此方法有两个参数：唯一标识通知的整数    值、状态栏通知Notification对象
+  后台服务
+
+  按使用分类
+  本地服务
+  用于应用程序内部，实现一些耗时任务，并不占用应用程序比如Activity所属线程，而是单开线程后台执行。 调用Context.startService()启动，调用Context.stopService()结束。在内部可以调用Service.stopSelf() 或 Service.stopSelfResult()来自己停止。
+
+  远程服务
+  用于Android系统内部的应用程序之间，可被其他应用程序复用，比如天气预报服务，其他应用程序不需要再写这样的服务，调用已有的即可。可以定义接口并把接口暴露出来，以便其他应用进行操作。客户端建立到服务对象的连接，并通过那个连接来调用服务。调用Context.bindService()方法建立连接，并启动，以调用 Context.unbindService()关闭连接。多个客户端可以绑定至同一个服务。如果服务此时还没有加载，bindService()会先加载它。
+ 
+
+ 6.IntentService定义
+
+   IntentService继承与Service，用来处理异步请求。客户端可以通过startService(Intent)方法传递请求给IntentService。IntentService在onCreate()函数中通过HandlerThread单独开启一个线程来依次处理所有Intent请求对象所对应的任务。这样以免事务处理阻塞主线程（ＡＮＲ）。执行完所一个Intent请求对象所对应的工作之后，如果没有新的Intent请求达到，则自动停止Service；否则执行下一个Intent请求所对应的任务。IntentService在处理事务时，还是采用的Handler方式，创建一个名叫ServiceHandler的内部Handler，并把它直接绑定到HandlerThread所对应的子线程。 ServiceHandler把处理一个intent所对应的事务都封装到叫做onHandleIntent的虚函数；因此我们直接实现虚函数onHandleIntent，再在里面根据Intent的不同进行不同的事务处理就可以了。 另外，IntentService默认实现了Onbind（）方法，返回值为null。
+
+7.使用IntentService需要实现的两个方法
+  构造函数
+  IntentService的构造函数一定是参数为空的构造函数,然后再在其中调用super("name")这种形式的构造函数.因为Service的实例化是系统完成的，而且系统是用参数为空的构造函数来实例化Service的
+  实现虚函数onHandleIntent
+  在里面根据Intent的不同进行不同的事务处理。好处：处理异步请求的时候可以减少写代码的工作量，比较轻松地实现项目的需求。
+
+8.IntentService与Service的区别
+
+  Service不是独立的进程，也不是独立的线程，它是依赖于应用程序的主线程的，不建议在Service中编写耗时的逻辑和操作，否则会引起ANR。
+
+  IntentService 它创建了一个独立的工作线程来处理所有的通过onStartCommand()传递给服务的intents（把intent插入到工作队列中）。通过工作队列把intent逐个发送给onHandleIntent()。不需要主动调用stopSelft()来结束服务。因为，在所有的intent被处理完后，系统会自动关闭服务。
+
+  默认实现的onBind()返回null。
+
+9.在Android中实现异步任务机制有两种方式 Handler和AsyncTask
+
+10.什么时候使用AsyncTask
+   在上一篇文章已经说了，主线程主要负责控制UI页面的显示、更新、交互等。 为了有更好的用户体验，UI线程中的操作要求越短越好。
+
+　　我们把耗时的操作（例如网络请求、数据库操作、复杂计算）放到单独的子线程中操作，以避免主线程的阻塞。但是在子线程中不能更新ＵＩ界面，这时候需要使用handler。
+
+　　但如果耗时的操作太多，那么我们需要开启太多的子线程，这就会给系统带来巨大的负担，随之也会带来性能方面的问题。在这种情况下我们就可以考虑使用类AsyncTask来异步执行任务，不需要子线程和handler，就可以完成异步操作和刷新UI。
+
+　　不要随意使用AsyncTask,除非你必须要与UI线程交互.默认情况下使用Thread即可,要注意需要将线程优先级调低.AsyncTask适合处理短时间的操作,长时间的操作,比如下载一个很大的视频,这就需要你使用自己的线程来下载,不管是断点下载还是其它的.
+
+11.AsyncTask原理
+   AsyncTask主要有二个部分：一个是与主线程的交互，另一个就是线程的管理调度。虽然可能多个AsyncTask的子类的实例，但是AsyncTask的内部Handler和ThreadPoolExecutor都是进程范围内共享的，其都是static的，也即属于类的，类的属性的作用范围是CLASSPATH，因为一个进程一个VM，所以是AsyncTask控制着进程范围内所有的子类实例。　
+
+　AsyncTask内部会创建一个进程作用域的线程池来管理要运行的任务，也就就是说当你调用了AsyncTask的execute()方法后，AsyncTask会把任务交给线程池，由线程池来管理创建Thread和运行Therad。
+
+12.AsyncTask介绍
+   Android的AsyncTask比Handler更轻量级一些（只是代码上轻量一些，而实际上要比handler更耗资源），适用于简单的异步处理。 　　 　　Android之所以有Handler和AsyncTask，都是为了不阻塞主线程（UI线程），因为UI的更新只能在主线程中完成，因此异步处理是不可避免的。
+
+　　AsyncTask：对线程间的通讯做了包装，是后台线程和UI线程可以简易通讯：后台线程执行异步任务，将result告知UI线程。
+
+13.使用AsyncTask分为两步
+   继承AsyncTask类实现自己的类
+   public abstract class AsyncTask<Params, Progress, Result> {
+   Params: 输入参数，对应excute()方法中传递的参数。如果不需要传递参数，则直接设为void即可。
+   Progress：后台任务执行的百分比
+   Result：返回值类型，和doInBackground（）方法的返回值类型保持一致。
+
+   复写方法
+   最少要重写以下这两个方法
+   doInBackground(Params…)
+　 在子线程（其他方法都在主线程执行）中执行比较耗时的操作，不能更新ＵＩ，可以在该方法中调用           publishProgress(Progress…)来更新任务的进度。Progress方法是AsycTask中一个final方法只能调用不能重写。
+
+   onPostExecute(Result)
+　 使用在doInBackground 得到的结果处理操作UI， 在主线程执行，任务执行的结果作为此方法的参数返回。
+
+   有时根据需求还要实现以下三个方法
+   onProgressUpdate(Progress…)
+　 可以使用进度条增加用户体验度。 此方法在主线程执行，用于显示任务执行的进度。
+
+   onPreExecute()
+　 这里是最终用户调用Excute时的接口，当任务执行之前开始调用此方法，可以在这里显示进度对话框。
+
+   onCancelled()
+　 用户调用取消时，要做的操作
+
+14.使用AsyncTask需要注意的地方
+   AsnycTask内部的Handler需要和主线程交互，所以AsyncTask的实例必须在UI线程中创建
+
+   AsyncTaskResult的doInBackground(mParams)方法执行异步任务运行在子线程中，其他方法运行在主线程中，可以操作UI组件
+
+   一个AsyncTask任务只能被执行一次。
+
+   运行中可以随时调用AsnycTask对象的cancel(boolean)方法取消任务，如果成功，调用isCancelled()会返回true，并且不会执行 onPostExecute() 方法了，而是执行 onCancelled() 方法。
+
+   对于想要立即开始执行的异步任务，要么直接使用Thread，要么单独创建线程池提供给AsyncTask。默认的AsyncTask不一定会立即执行你的任务，除非你提供给他一个单独的线程池。如果不与主线程交互，直接创建一个Thread就可以了。
+
+15.Android数据存储的五种方式
+    Android提供了5种方式来让用户保存持久化应用程序数据。根据自己的需求来做选择，比如数据是否是应用程序私有的，是否能被其他程序访问，需要多少数据存储空间等，分别是：　 　　 
+
+    ①　使用SharedPreferences存储数据　
+
+    ②　文件存储数据
+
+    ③　 SQLite数据库存储数据
+
+    ④　使用ContentProvider存储数据
+
+    ⑤　网络存储数据　
+
+    Android提供了一种方式来暴露你的数据（甚至是私有数据）给其他应用程序 - ContentProvider。它是一个可选组件，可公开读写你应用程序数据。
+
+16. SharedPreferences存储
+    SharedPreference类提供了一个总体框架，使您可以保存和检索的任何基本数据类型（ boolean, float, int, long, string）的持久键-值对（基于XML文件存储的“key-value”键值对数据）。
+　　通常用来存储程序的一些配置信息。其存储在“data/data/程序包名/shared_prefs目录下。
+　　xml 处理时Dalvik会通过自带底层的本地XML Parser解析，比如XMLpull方式，这样对于内存资源占用比较     好。
+
+    我们可以通过以下两种方法获取SharedPreferences对象（通过Context）：
+
+    getSharedPreferences (String name, int mode)
+　　当我们有多个SharedPreferences的时候，根据第一个参数name获得相应的SharedPreferences对象。
+
+    getPreferences (int mode)
+　　如果你的Activity中只需要一个SharedPreferences的时候使用。
+
+    这里的mode有四个选项：
+
+    Context.MODE_PRIVATE
+　　该SharedPreferences数据只能被本应用程序读、写。
+
+    Context.MODE_WORLD_READABLE
+　　该SharedPreferences数据能被其他应用程序读，但不能写。
+
+    Context.MODE_WORLD_WRITEABLE
+　　该SharedPreferences数据能被其他应用程序读和写。
+
+    Context.MODE_MULTI_PROCESS
+　　sdk2.3后添加的选项，当多个进程同时读写同一个SharedPreferences时它会检查文件是否修改。
+
+17.向Shared Preferences中写入值
+   首先要通过 SharedPreferences.Editor获取到Editor对象；
+
+   然后通过Editor的putBoolean() 或 putString()等方法存入值；
+
+   最后调用Editor的commit()方法提交；
+   //Use 0 or MODE_PRIVATE for the default operation 
+   SharedPreferences settings = getSharedPreferences("fanrunqi", 0);
+   SharedPreferences.Editor editor = settings.edit();
+   editor.putBoolean("isAmazing", true); 
+
+   // 提交本次编辑
+   editor.commit();
+
+   同时Edit还有两个常用的方法：
+   editor.remove(String key) ：下一次commit的时候会移除key对应的键值对
+   editor.clear()：移除所有键值对
+
+   
+18.从Shared Preferences中读取值
+   
+   读取值使用 SharedPreference对象的getBoolean()或getString()等方法就行了（没Editor 啥子事）
+   SharedPreferences settings = getSharedPreferences("fanrunqi", 0);
+   boolean isAmazing= settings.getBoolean("isAmazing",true);
+
+19.Shared Preferences的优缺点
+   可以看出来Preferences是很轻量级的应用，使用起来也很方便，简洁。但存储数据类型比较单一（只有基本数据类型），无法进行条件查询，只能在不复杂的存储需求下使用，比如保存配置信息等。
+
+20.文件数据存储
+   使用内部存储
+
+　 当文件被保存在内部存储中时，默认情况下，文件是应用程序私有的，其他应用不能访问。当用户卸载应用    程序时这些文件也跟着被删除。
+   文件默认存储位置：/data/data/包名/files/文件名
+
+
+21.创建和写入一个内部存储的私有文件
+   调用Context的openFileOutput()函数，填入文件名和操作模式，它会返回一个FileOutputStream对象。
+   通过FileOutputStream对象的write()函数写入数据。
+   FileOutputStream对象的close ()函数关闭流。
+   例如
+   String FILENAME = "a.txt";
+   String string = "fanrunqi";
+   try {
+	   FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+	   fos.write(string.getBytes());
+	   fos.close();
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+
+   在 openFileOutput(String name, int mode)方法中
+
+    name参数:　用于指定文件名称，不能包含路径分隔符“/” ，如果文件不存在，Android 会自动创建它。
+
+    mode参数：用于指定操作模式，分为四种：
+
+    Context.MODE_PRIVATE = 0
+　　为默认操作模式，代表该文件是私有数据，只能被应用本身访问，在该模式下，写入的内容会覆盖原文件的     内容。
+
+    Context.MODE_APPEND = 32768
+　　该模式会检查文件是否存在，存在就往文件追加内容，否则就创建新文件。　
+
+    Context.MODE_WORLD_READABLE = 1
+　　表示当前文件可以被其他应用读取。
+
+    MODE_WORLD_WRITEABLE
+　　表示当前文件可以被其他应用写入。
+
+22. 读取一个内部存储的私有文件
+    ① 调用openFileInput( )，参数中填入文件名，会返回一个FileInputStream对象。
+
+    ② 使用流对象的 read()方法读取字节
+
+    ③ 调用流的close()方法关闭流
+      例如：
+
+      String FILENAME = "a.txt";
+      try {
+            FileInputStream inStream = openFileInput(FILENAME);
+            int len = 0;
+            byte[] buf = new byte[1024];
+            StringBuilder sb = new StringBuilder();
+            while ((len = inStream.read(buf)) != -1) {
+                sb.append(new String(buf, 0, len));
+            }
+            inStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+	
+     其他一些经常用到的方法
+     getFilesDir()：　得到内存储文件的绝对路径
+
+     getDir()：　在内存储空间中创建或打开一个已经存在的目录
+
+     deleteFile()：　删除保存在内部存储的文件。
+
+     fileList()：　返回当前由应用程序保存的文件的数组（内存储目录下的全部文件）。
+
+
+
+
