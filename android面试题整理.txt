@@ -600,6 +600,17 @@ class RetainFragment extends Fragment {
 
     service ondestrory 执行
 
+
+44. activity和service关联
+
+    bindService    只执行service oncreate() 方法
+
+    unbindService  执行 service onDestroy() 方法
+
+    bindService和startService 都点击了 必须 stopService 和 unbindService 都点击 service 才会销毁
+
+
+
    
 
 
