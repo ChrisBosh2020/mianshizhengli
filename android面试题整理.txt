@@ -609,7 +609,10 @@ class RetainFragment extends Fragment {
 
     bindService和startService 都点击了 必须 stopService 和 unbindService 都点击 service 才会销毁
 
+45. service和Thread关系
 
+    没有关系 service运行在主线程中
+    
 
    
 
