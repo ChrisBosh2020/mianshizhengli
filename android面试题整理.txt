@@ -673,13 +673,17 @@ class RetainFragment extends Fragment {
    
    
    Looper
-
+   Looper是每个线程中的MessageQueue的管家,调用Looper的loop方法后,就会进入到一个无限循环中,然后每当发现MessageQueue中存在一条消息,就会将它取出,并传递到Handler的handleMessage()方法中.每个线程也只会有一个Looper对象
    
 
 
    
-
-
+   异步消息处理机制流程
+   1.首先在主线程中创建Handler对象,并重写handlerMessage方法
+   2.当子线程需要ui操作时,创建Message对象,并通过Handler发送出去
+   3.发送出去的消息被添加到MessageQueue队列中待处理.
+   4.而Looper则一直尝试从MessageQueue队列中取出待处理消息.最后分发回handler的handlerMessage方法中
+   5.因为Handler是在主线程创建的.所以handlerMessage中运行的代码也是在主线程中的.可以放心操作UI
 
 
 
