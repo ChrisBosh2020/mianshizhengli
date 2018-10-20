@@ -1,0 +1,14 @@
+服务
+1.自定义服务继承自Service,onBind是Service中唯一一个抽象方法,所以在子类必须实现
+2.服务需要重写 onCreate() onStartCommand onDestroy方法
+  onCreate 会在每次服务创建的时候调用
+  onStartCommand 会在每次服务启动的时候调用
+  onDestroy 会在每次服务销毁的时候调用
+3.停止服务 stopService 或者stopSelf()
+4.其实onCreate()方法是在服务第一次创建时调用的,而onStartCommand方法则在每次启动服务的时候都会调用,由于刚才我们第一次点击Start Service按钮,服务此时还未创建过,所以两个方法都会执行,之后如果你连续多点击几次StartService,你就会发现只有onStartCommand方法可以得到执行了.
+5.服务的生命周期
+  一旦在项目的任何位置调用了ConText的startService()方法,相应的服务就会启动起来,并回调onStartCommand()方法.如果这个服务之前还没有创建过,onCreate()方法会先于onStartCommand()方法执行.服务启动了之后会一直保持运行状态,直到stopService或者stopSelf()方法被调用.虽然每调用一次startService()方法，onStartCommand()就会执行一次，但实际上每个服务都只会存在一个实例。所以不管你调用了多少次startService()方法，只需调用一次stopService()或stopSelf()方法，服务就会停止下来了
+
+  另外，还可以调用Context的bindService()来获取一个服务的持久连接，这时就会回调服务中的onBind()方法。类似地，如果这个服务之前还没有创建过，onCreate()方法会先于onBind()方法执行。之后，调用方可以获取到onBind()方法里返回的IBinder对象的实例，这样就能自由地和服务进行通信了。只要调用方和服务之间的连接没有断开，服务就会一直保持运行状态。
+
+  当调用了startService()方法后，又去调用stopService()方法，这时服务中的ondestroy()方法就会执行，表示服务已经销毁了。类似地，当调用了bindService()方法后，又去调用unbindService()方法，onDestroy()方法也会执行，这两种情况都很好了理解。但是需要注意，我们是完全有可能对一个服务既调用了startService()方法，又调用了bindService()方法的。这种情况下该如何才能让服务销毁掉呢？根据Android系统的机制，一个服务只要被启动或者被绑定了之后，就会一直处于运行状态，必须要让以上两种条件同时不满足，服务才能被销毁。所以，这种情况下要同时调用stopService()和unbindService()方法，onDestroy()方法才会执行。
