@@ -1,0 +1,18 @@
+1.anr
+Application Not Responding
+2.应用程序无响应时弹出的对话框
+3.造成anr的主要原因
+主线程被IO操作(从4.0之后网络IO不允许在主线程中)阻塞
+主线程中存在耗时的计算
+4.Android中哪些操作是在主线程呢
+Activity的所有生命周期回调都是执行在主线程的
+Service默认是执行在主线程的
+BroadcastReceiver的onReceive回调是执行在主线程的
+没有使用子线程的looper的Handler的handleMessage,post(Runnable)是执行在主线程的
+AsyncTask的回调中除了doInBackground,其他都是执行在主线程
+5.如何解决anr
+使用Asynctask处理耗时IO操作
+使用Thread或者HandlerThread提高优先级
+使用handler来处理工作线程的耗时任务
+Activity的onCreate和onResume回调中尽量避免耗时的代码
+

@@ -1,0 +1,4 @@
+1.Activity
+与用户交互的接口
+Android系统是通过Activity栈的形式来管理Activity
+Active/Paused/Stopped/Killed
