@@ -1,0 +1,4 @@
+1.UI卡顿原理
+60fps->16ms
+overdraw
+android系统的渲染做了太多耗时操作
