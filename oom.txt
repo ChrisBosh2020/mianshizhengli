@@ -11,6 +11,14 @@
 
 3.如何解决oom
 有关bitmap
-图片显示
-及时释放内存
+   图片显示
+   及时释放内存
+   图片压缩
+   inBitmap属性
+   捕获异常
+其他方法
+listview:convertview/lru
+避免在onDraw方法里执行对象的创建
+谨慎使用多进程
+
  

@@ -7,6 +7,7 @@ bitmap lruCache 使用原理:
 2.计算inSampleSize(缩减比列)值
 
 
-3.
+3.三级缓存
+  网络缓存 本地缓存 内存缓存
 
 
